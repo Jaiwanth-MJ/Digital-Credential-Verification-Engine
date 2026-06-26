@@ -1,0 +1,71 @@
+package com.example.demo.service.impl;
+
+import com.example.demo.entity.VerificationRule;
+import com.example.demo.exception.BadRequestException;
+import com.example.demo.exception.ResourceNotFoundException;
+import com.example.demo.repository.VerificationRuleRepository;
+import com.example.demo.service.VerificationRuleService;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class VerificationRuleServiceImpl implements VerificationRuleService {
+    
+    private final VerificationRuleRepository ruleRepo;
+    
+    public VerificationRuleServiceImpl(VerificationRuleRepository ruleRepo) {
+        this.ruleRepo = ruleRepo;
+    }
+    
+    @Override
+    public VerificationRule createRule(VerificationRule rule) {
+        if (rule == null) {
+            throw new BadRequestException("Verification rule cannot be null");
+        }
+        
+        return ruleRepo.save(rule);
+    }
+    
+    @Override
+    public VerificationRule updateRule(Long id, VerificationRule updatedRule) {
+        if (id == null) {
+            throw new BadRequestException("Rule ID cannot be null");
+        }
+        
+        if (updatedRule == null) {
+            throw new BadRequestException("Updated rule cannot be null");
+        }
+        
+        VerificationRule existing = ruleRepo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Rule not found with id: " + id));
+        
+        if (updatedRule.getRuleCode() != null) {
+            existing.setRuleCode(updatedRule.getRuleCode());
+        }
+        if (updatedRule.getDescription() != null) {
+            existing.setDescription(updatedRule.getDescription());
+        }
+        if (updatedRule.getAppliesToType() != null) {
+            existing.setAppliesToType(updatedRule.getAppliesToType());
+        }
+        if (updatedRule.getValidationExpression() != null) {
+            existing.setValidationExpression(updatedRule.getValidationExpression());
+        }
+        if (updatedRule.getActive() != null) {
+            existing.setActive(updatedRule.getActive());
+        }
+        
+        return ruleRepo.save(existing);
+    }
+    
+    @Override
+    public List<VerificationRule> getActiveRules() {
+        return ruleRepo.findByActiveTrue();
+    }
+    
+    @Override
+    public List<VerificationRule> getAllRules() {
+        return ruleRepo.findAll();
+    }
+}
