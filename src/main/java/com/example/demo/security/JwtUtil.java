@@ -4,6 +4,10 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+
+import java.nio.charset.StandardCharsets;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -15,11 +19,14 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
     
-    private static final String SECRET_KEY = "MySecretKeyForJWTTokenGenerationAndValidation12345678901234567890";
-    private static final long JWT_TOKEN_VALIDITY = 1000 * 60 * 60 * 10; // 10 hours
+    @Value("${jwt.secret}")
+    private String secretKey;
+    @Value("${jwt.expiration}")
+    private long jwtTokenValidity;
     
+
     private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
+        return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
     
     public String generateToken(Long userId, String email, String role) {
@@ -32,7 +39,7 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(email)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtTokenValidity))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
