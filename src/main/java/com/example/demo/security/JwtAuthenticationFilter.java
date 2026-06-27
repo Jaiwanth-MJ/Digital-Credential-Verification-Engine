@@ -11,6 +11,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import io.jsonwebtoken.JwtException;
+
 import java.io.IOException;
 import java.util.Collections;
 
@@ -28,6 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         
         final String authorizationHeader = request.getHeader("Authorization");
+        System.out.println("Authorization Header: " + authorizationHeader);
         
         String username = null;
         String jwt = null;
@@ -36,13 +39,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             jwt = authorizationHeader.substring(7);
             try {
                 username = jwtUtil.extractUsername(jwt);
-            } catch (Exception e) {
-                // Invalid token
+                System.out.println("Extracted Username: " + username);
+            } catch (JwtException e) {
+                e.printStackTrace(); // Invalid token
             }
         }
-        
+
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if (jwtUtil.validateToken(jwt, username)) {
+            boolean valid = jwtUtil.validateToken(jwt, username);
+            System.out.println("JWT Valid: " + valid);
+            if (valid) {
                 String role = jwtUtil.extractRole(jwt);
                 
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -50,9 +56,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                System.out.println("Authentication successfully set for user: " + username);
+                System.out.println("Authorities: " + authToken.getAuthorities());
             }
         }
         
+        System.out.println("Continuing filter chain...");
         filterChain.doFilter(request, response);
     }
 }

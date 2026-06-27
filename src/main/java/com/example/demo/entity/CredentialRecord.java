@@ -5,10 +5,13 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 @Entity
 @Table(name = "credential_records")
 public class CredentialRecord {
     
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
